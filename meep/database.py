@@ -1,36 +1,28 @@
-from typing import Any, Dict
+from typing import List
 
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    Integer,
-    MetaData,
-    String,
-    Table,
-    create_engine,
-)
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
-meta = MetaData()
-
-tweets = Table(
-    "tweets",
-    meta,
-    Column("id", String, primary_key=True),
-    Column("full_text", String),
-    Column("favorite_count", Integer),
-    Column("retweet_count", Integer),
-    Column("retweeted", Boolean),
-    Column("lang", String),
-    Column("created_at", DateTime),
-)
+from meep.config import CONFIG_DIR, DB_PATH
+from meep.models import Base, Tweet
 
 
 class MeepDatabase:
     def __init__(self) -> None:
-        # TODO: check if the database is created.
-        engine = create_engine("sqlite+pysqlite:///meep.sqlite", echo=True, future=True)
-        meta.create_all(engine)
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
-    def import_tweets(self, tweet_data: Dict[str, Any]) -> None:
+        self.engine = create_engine(
+            f"sqlite+pysqlite:///{DB_PATH}", echo=True, future=True
+        )
+
+        if not DB_PATH.exists():
+            Base.metadata.create_all(self.engine)
+
+    def import_tweets(self, tweet_list: List[Tweet]) -> None:
+        tweets = []
+
+        with Session(self.engine) as session:
+            session.add_all(tweet_list)
+            session.commit()
+
         breakpoint()
