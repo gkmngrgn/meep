@@ -19,10 +19,13 @@ class MeepDatabase:
             Base.metadata.create_all(self.engine)
 
     def import_tweets(self, tweet_list: List[Tweet]) -> None:
-        tweets = []
-
         with Session(self.engine) as session:
-            session.add_all(tweet_list)
+            tweet_list_filtered = [
+                tweet
+                for tweet in tweet_list
+                if not session.query(
+                    session.query(Tweet).filter_by(id=tweet.id).exists()
+                ).scalar()
+            ]
+            session.add_all(tweet_list_filtered)
             session.commit()
-
-        breakpoint()

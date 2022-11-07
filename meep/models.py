@@ -16,7 +16,7 @@ Base = declarative_base()
 class Tweet(Base):
     __tablename__ = "tweet"
 
-    id = Column(String, primary_key=True)
+    id = Column(String, primary_key=True, unique=True)
     full_text = Column(String)
     favorite_count = Column(Integer)
     retweet_count = Column(Integer)
