@@ -1,13 +1,4 @@
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    Integer,
-    MetaData,
-    String,
-    Table,
-    create_engine,
-)
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()

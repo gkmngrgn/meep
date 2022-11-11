@@ -1,9 +1,10 @@
 import zipfile
 
 import click
+from sqlalchemy import select
 
 from meep.archive import parse_twitter_data
-from meep.database import MeepDatabase
+from meep.database import MeepDatabase, Tweet
 
 
 @click.group()
@@ -29,3 +30,12 @@ def load_data(filename: str) -> None:
                 break
 
     click.echo(click.format_filename(filename))
+
+
+@run.command()
+def analyze() -> None:
+    meep_db = MeepDatabase()
+    statement = select(Tweet).where(Tweet.favorite_count > 1).order_by(Tweet.created_at)
+    with meep_db.engine.connect() as connection:
+        result = connection.execute(statement).fetchall()
+    breakpoint()
