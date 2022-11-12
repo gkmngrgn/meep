@@ -1,10 +1,12 @@
+import sys
 import zipfile
 
 import click
 from sqlalchemy import select
 
 from meep.archive import parse_twitter_data
-from meep.database import MeepDatabase, Tweet
+from meep.database import MeepDatabase
+from meep.models import Tweet
 
 
 @click.group()
@@ -17,14 +19,14 @@ def run() -> None:
 def load_data(filename: str) -> None:
     if not zipfile.is_zipfile(filename):
         click.echo(f"Not a valid zip file: {filename}")
-        exit(1)
+        sys.exit(1)
 
     meep_db = MeepDatabase()
 
-    with zipfile.ZipFile(filename) as z:
-        for z_file in z.namelist():
-            if z_file.endswith("data/tweets.js"):
-                content = z.read(z_file)
+    with zipfile.ZipFile(filename) as archive:
+        for archive_file in archive.namelist():
+            if archive_file.endswith("data/tweets.js"):
+                content = archive.read(archive_file)
                 tweet_data = parse_twitter_data(content)
                 meep_db.import_tweets(tweet_data)
                 break

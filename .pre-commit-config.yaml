@@ -30,7 +30,13 @@ repos:
     rev: "v0.982"
     hooks:
       - id: mypy
-        args: ["--strict", "--ignore-missing-imports"]
+        args:
+          - --strict
+          - --ignore-missing-imports
+        additional_dependencies:
+          - sqlalchemy[mypy]
+          - types-click
+          - types-python-dateutil
         exclude: ^tests/
 
   - repo: local
@@ -40,5 +46,7 @@ repos:
         entry: poetry run pylint
         language: system
         types: [python]
+        args:
+          - --disable=missing-docstring
         require_serial: true
         exclude: ^tests/

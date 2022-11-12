@@ -4,7 +4,7 @@ from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
 
-class Tweet(Base):
+class Tweet(Base):  # pylint: disable=too-few-public-methods
     __tablename__ = "tweet"
 
     id = Column(String, primary_key=True, unique=True)
