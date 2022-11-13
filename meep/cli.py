@@ -2,11 +2,9 @@ import sys
 import zipfile
 
 import click
-from sqlalchemy import select
 
 from meep.archive import parse_twitter_data
 from meep.database import MeepDatabase
-from meep.models import Tweet
 
 
 @click.group()
@@ -35,9 +33,19 @@ def load_data(filename: str) -> None:
 
 
 @run.command()
-def analyze() -> None:
-    meep_db = MeepDatabase()
-    statement = select(Tweet).where(Tweet.favorite_count > 1).order_by(Tweet.created_at)
-    with meep_db.engine.connect() as connection:
-        result = connection.execute(statement).fetchall()
-    breakpoint()
+@click.option("--show-tweets/--hide-tweets", default=False)
+@click.option("--min-favorite", default=0)
+@click.option("--tweet-count", default=1000)
+@click.option("--order-by", default="-created_at")
+def analyze(
+    show_tweets: bool, min_favorite: int, tweet_count: int, order_by: str
+) -> None:
+    tweets = MeepDatabase().filter_tweets(
+        min_fav_count=min_favorite,
+        limit=tweet_count,
+        order_by=order_by,
+    )
+
+    if show_tweets is True:
+        for tweet in tweets:
+            click.echo(tweet)

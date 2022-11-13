@@ -14,3 +14,6 @@ class Tweet(Base):  # pylint: disable=too-few-public-methods
     retweeted = Column(Boolean)
     lang = Column(String)
     created_at = Column(DateTime)
+
+    def __repr__(self) -> str:
+        return f"{self.id}, {self.created_at} - {self.full_text}"

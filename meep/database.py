@@ -1,6 +1,6 @@
-from typing import List
+from typing import Iterable, List
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
 from meep.config import CONFIG_DIR, DB_PATH
@@ -29,3 +29,16 @@ class MeepDatabase:
             ]
             session.add_all(tweet_list_filtered)
             session.commit()
+
+    def filter_tweets(
+        self, min_fav_count: int, limit: int, order_by: str
+    ) -> Iterable[Tweet]:
+        with Session(self.engine) as session:
+            tweets = (
+                session.query(Tweet)
+                .filter(Tweet.favorite_count > min_fav_count)
+                .order_by(text(order_by))
+                .limit(limit)
+            )
+        for tweet in tweets:
+            yield tweet
