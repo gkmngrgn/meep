@@ -31,12 +31,19 @@ class MeepDatabase:
             session.commit()
 
     def filter_tweets(
-        self, min_fav_count: int, limit: int, order_by: str
+        self,
+        max_fav_count: int,
+        max_rt_count: int,
+        limit: int,
+        order_by: str,
     ) -> Iterable[Tweet]:
         with Session(self.engine) as session:
             tweets = (
                 session.query(Tweet)
-                .filter(Tweet.favorite_count > min_fav_count)
+                .filter(
+                    Tweet.favorite_count <= max_fav_count,
+                    Tweet.retweet_count <= max_rt_count,
+                )
                 .order_by(text(order_by))
                 .limit(limit)
             )

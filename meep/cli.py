@@ -1,10 +1,17 @@
 import sys
 import zipfile
+from collections import namedtuple
 
 import click
 
 from meep.archive import parse_twitter_data
 from meep.database import MeepDatabase
+from meep.printer import format_tweet
+
+AccountReview = namedtuple(
+    "AccountReview",
+    ("tweet_count", "max_favorite", "max_retweet"),
+)
 
 
 @click.group()
@@ -34,18 +41,38 @@ def load_data(filename: str) -> None:
 
 @run.command()
 @click.option("--show-tweets/--hide-tweets", default=False)
-@click.option("--min-favorite", default=0)
+@click.option("--max-favorite", default=0)
+@click.option("--max-retweet", default=0)
 @click.option("--tweet-count", default=1000)
 @click.option("--order-by", default="-created_at")
 def analyze(
-    show_tweets: bool, min_favorite: int, tweet_count: int, order_by: str
+    show_tweets: bool,
+    max_favorite: int,
+    max_retweet: int,
+    tweet_count: int,
+    order_by: str,
 ) -> None:
     tweets = MeepDatabase().filter_tweets(
-        min_fav_count=min_favorite,
+        max_fav_count=max_favorite,
+        max_rt_count=max_retweet,
         limit=tweet_count,
         order_by=order_by,
     )
 
-    if show_tweets is True:
-        for tweet in tweets:
-            click.echo(tweet)
+    review = AccountReview(0, 0, 0)
+
+    for tweet in tweets:
+        review = AccountReview(
+            tweet_count=review.tweet_count + 1,
+            max_favorite=max(review.max_favorite, tweet.favorite_count),
+            max_retweet=max(review.max_retweet, tweet.retweet_count),
+        )
+        if show_tweets is True:
+            click.echo(format_tweet(tweet))
+
+    click.echo("REVIEW:")
+    click.echo(
+        f"tweets: {review.tweet_count} - "
+        f"max fav: {review.max_favorite} - "
+        f"max rt: {review.max_retweet}"
+    )
