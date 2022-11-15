@@ -1,6 +1,6 @@
 from typing import Iterable, List, Optional
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, extract, text
 from sqlalchemy.orm import Session
 
 from meep.config import CONFIG_DIR, DB_PATH
@@ -51,6 +51,7 @@ class MeepDatabase:
         self,
         max_fav_count: int,
         max_rt_count: int,
+        year: int,
         order_by: str,
     ) -> Iterable[Tweet]:
         with Session(self.engine) as session:
@@ -59,6 +60,7 @@ class MeepDatabase:
                 .filter(
                     Tweet.favorite_count <= max_fav_count,
                     Tweet.retweet_count <= max_rt_count,
+                    extract("year", Tweet.created_at) == year,
                 )
                 .order_by(text(order_by))
             )

@@ -1,3 +1,4 @@
+import datetime
 import sys
 import zipfile
 from collections import namedtuple
@@ -57,16 +58,19 @@ def load_data(filename: str) -> None:
 @click.option("--show-tweets/--hide-tweets", default=False)
 @click.option("--max-favorite", default=0)
 @click.option("--max-retweet", default=0)
+@click.option("--year", default=datetime.date.today().year)
 @click.option("--order-by", default="-created_at")
 def analyze(
     show_tweets: bool,
     max_favorite: int,
     max_retweet: int,
+    year: int,
     order_by: str,
 ) -> None:
     tweets = MeepDatabase().filter_tweets(
         max_fav_count=max_favorite,
         max_rt_count=max_retweet,
+        year=year,
         order_by=order_by,
     )
 
@@ -80,6 +84,8 @@ def analyze(
         )
         if show_tweets is True:
             click.echo(format_tweet(tweet))
+        else:
+            click.echo(tweet.link)
 
     click.echo("REVIEW:")
     click.echo(
