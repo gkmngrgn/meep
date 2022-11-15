@@ -4,7 +4,8 @@ from collections import namedtuple
 
 import click
 
-from meep.archive import parse_twitter_data
+from meep.archive import parse_account_data, parse_tweet_data
+from meep.config import DB_PATH
 from meep.database import MeepDatabase
 from meep.printer import format_tweet
 
@@ -16,7 +17,7 @@ AccountReview = namedtuple(
 
 @click.group()
 def run() -> None:
-    print("it worked.")
+    pass
 
 
 @run.command()
@@ -26,14 +27,27 @@ def load_data(filename: str) -> None:
         click.echo(f"Not a valid zip file: {filename}")
         sys.exit(1)
 
-    meep_db = MeepDatabase()
+    if DB_PATH.exists():
+        DB_PATH.unlink()
 
+    meep_db = MeepDatabase()
     with zipfile.ZipFile(filename) as archive:
+        account = None
+        for archive_file in archive.namelist():
+            if archive_file.endswith("data/account.js"):
+                meep_db.import_accounts(parse_account_data(archive.read(archive_file)))
+                account = meep_db.get_account()
+                break
+
+        if account is None:
+            click.echo("Not a valid account.")
+            sys.exit(1)
+
         for archive_file in archive.namelist():
             if archive_file.endswith("data/tweets.js"):
-                content = archive.read(archive_file)
-                tweet_data = parse_twitter_data(content)
-                meep_db.import_tweets(tweet_data)
+                meep_db.import_tweets(
+                    parse_tweet_data(archive.read(archive_file), account=account)
+                )
                 break
 
     click.echo(click.format_filename(filename))
@@ -43,19 +57,16 @@ def load_data(filename: str) -> None:
 @click.option("--show-tweets/--hide-tweets", default=False)
 @click.option("--max-favorite", default=0)
 @click.option("--max-retweet", default=0)
-@click.option("--tweet-count", default=1000)
 @click.option("--order-by", default="-created_at")
 def analyze(
     show_tweets: bool,
     max_favorite: int,
     max_retweet: int,
-    tweet_count: int,
     order_by: str,
 ) -> None:
     tweets = MeepDatabase().filter_tweets(
         max_fav_count=max_favorite,
         max_rt_count=max_retweet,
-        limit=tweet_count,
         order_by=order_by,
     )
 

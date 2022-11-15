@@ -1,10 +1,10 @@
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
 from meep.config import CONFIG_DIR, DB_PATH
-from meep.models import Base, Tweet
+from meep.models import Account, Base, Tweet
 
 
 class MeepDatabase:
@@ -18,23 +18,39 @@ class MeepDatabase:
         if not DB_PATH.exists():
             Base.metadata.create_all(self.engine)
 
-    def import_tweets(self, tweet_list: List[Tweet]) -> None:
+    def get_account(self) -> Optional[Account]:
         with Session(self.engine) as session:
-            tweet_list_filtered = [
+            account = session.query(Account).first()
+        return account
+
+    def import_accounts(self, accounts: List[Account]) -> None:
+        with Session(self.engine) as session:
+            accounts_filtered = [
+                account
+                for account in accounts
+                if not session.query(
+                    session.query(Account).filter_by(username=account.username).exists()
+                ).scalar()
+            ]
+            session.add_all(accounts_filtered)
+            session.commit()
+
+    def import_tweets(self, tweets: List[Tweet]) -> None:
+        with Session(self.engine) as session:
+            tweets_filtered = [
                 tweet
-                for tweet in tweet_list
+                for tweet in tweets
                 if not session.query(
                     session.query(Tweet).filter_by(id=tweet.id).exists()
                 ).scalar()
             ]
-            session.add_all(tweet_list_filtered)
+            session.add_all(tweets_filtered)
             session.commit()
 
     def filter_tweets(
         self,
         max_fav_count: int,
         max_rt_count: int,
-        limit: int,
         order_by: str,
     ) -> Iterable[Tweet]:
         with Session(self.engine) as session:
@@ -45,7 +61,6 @@ class MeepDatabase:
                     Tweet.retweet_count <= max_rt_count,
                 )
                 .order_by(text(order_by))
-                .limit(limit)
             )
         for tweet in tweets:
             yield tweet
