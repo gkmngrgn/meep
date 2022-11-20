@@ -56,18 +56,21 @@ def load_data(filename: str) -> None:
 
 @run.command()
 @click.option("--show-tweets/--hide-tweets", default=False)
+@click.option("--keyword", default="")
 @click.option("--max-favorite", default=0)
 @click.option("--max-retweet", default=0)
 @click.option("--year", default=datetime.date.today().year)
 @click.option("--order-by", default="-created_at")
-def analyze(
+def analyze(  # pylint: disable=too-many-arguments
     show_tweets: bool,
+    keyword: str,
     max_favorite: int,
     max_retweet: int,
     year: int,
     order_by: str,
 ) -> None:
     tweets = MeepDatabase().filter_tweets(
+        keyword=keyword,
         max_fav_count=max_favorite,
         max_rt_count=max_retweet,
         year=year,

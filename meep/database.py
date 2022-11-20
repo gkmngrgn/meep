@@ -47,22 +47,25 @@ class MeepDatabase:
             session.add_all(tweets_filtered)
             session.commit()
 
-    def filter_tweets(
+    def filter_tweets(  # pylint: disable=too-many-arguments
         self,
+        keyword: str,
         max_fav_count: int,
         max_rt_count: int,
         year: int,
         order_by: str,
     ) -> Iterable[Tweet]:
+        filters = [
+            Tweet.favorite_count <= max_fav_count,
+            Tweet.retweet_count <= max_rt_count,
+            extract("year", Tweet.created_at) == year,
+        ]
+
+        if keyword:
+            filters.append(Tweet.full_text.contains(keyword))
+
         with Session(self.engine) as session:
-            tweets = (
-                session.query(Tweet)
-                .filter(
-                    Tweet.favorite_count <= max_fav_count,
-                    Tweet.retweet_count <= max_rt_count,
-                    extract("year", Tweet.created_at) == year,
-                )
-                .order_by(text(order_by))
-            )
+            tweets = session.query(Tweet).filter(*filters).order_by(text(order_by))
+
         for tweet in tweets:
             yield tweet
