@@ -1,30 +1,55 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import declarative_base
+from __future__ import annotations
+from pydantic import BaseModel
 
-Base = declarative_base()
-
-
-class Account(Base):  # pylint: disable=too-few-public-methods
-    __tablename__ = "account"
-
-    username = Column(String, primary_key=True, unique=True)
-    email = Column(String)
+import datetime
 
 
-class Tweet(Base):  # pylint: disable=too-few-public-methods
-    __tablename__ = "tweet"
+class Account(BaseModel):
+    username: str
+    email: str
 
-    id = Column(String, primary_key=True, unique=True)
-    account_id = Column(String, ForeignKey("account.username"), nullable=False)
-    full_text = Column(String)
-    favorite_count = Column(Integer)
-    retweet_count = Column(Integer)
-    retweeted = Column(Boolean)
-    lang = Column(String)
-    created_at = Column(DateTime)
+    @classmethod
+    def from_row(cls, row) -> Account:
+        return cls(username=row[0], email=row[1])
 
-    def __repr__(self) -> str:
-        return f"{self.id}, {self.created_at} - {self.full_text}"
+    def to_row(self) -> tuple[str, str]:
+        return self.username, self.email
+
+
+class Tweet(BaseModel):
+    id: int
+    account_id: str
+    full_text: str
+    favorite_count: int
+    retweet_count: int
+    retweeted: bool
+    lang: str
+    created_at: datetime.datetime
+
+    @classmethod
+    def from_row(cls, row) -> Tweet:
+        return cls(
+            id=row[0],
+            account_id=row[1],
+            full_text=row[2],
+            favorite_count=row[3],
+            retweet_count=row[4],
+            retweeted=row[5],
+            lang=row[6],
+            created_at=row[7],
+        )
+
+    def to_row(self) -> tuple[int, int, str, int, int, bool, str, str]:
+        return (
+            self.id,
+            self.account_id,
+            self.full_text,
+            self.favorite_count,
+            self.retweet_count,
+            self.retweeted,
+            self.lang,
+            self.created_at,
+        )
 
     @property
     def link(self) -> str:
