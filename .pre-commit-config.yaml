@@ -34,7 +34,6 @@ repos:
           - --strict
           - --ignore-missing-imports
         additional_dependencies:
-          - sqlalchemy[mypy]
           - types-click
           - types-python-dateutil
         exclude: ^tests/
