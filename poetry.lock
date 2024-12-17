@@ -301,6 +301,36 @@ files = [
 typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
+name = "pylimbo"
+version = "0.0.9"
+description = "Limbo is a work-in-progress, in-process OLTP database management system, compatible with SQLite."
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "pylimbo-0.0.9-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:39252924a8b36c3b85a7b3dec19944ed8b30040830f789da68cbb757e077ba25"},
+    {file = "pylimbo-0.0.9-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:b59261d33eaa1831dc166aba18f3f15debfa659d947362daf1e52373a250eb0c"},
+    {file = "pylimbo-0.0.9-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:01aae4da5a54338a64a054240ca2480308656fdfbbe3568b4d8ad8428ca89712"},
+    {file = "pylimbo-0.0.9-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:d63cc586dd8e5e44dda4c46972ccfa17f2829f898df8e13b81367534f92dad71"},
+    {file = "pylimbo-0.0.9-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:9446514ebca81b4d1c65344f677fa4b569076fbfd682497ed7633074a90c5b0a"},
+    {file = "pylimbo-0.0.9-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:aca65af5b44856911986f83036989fabdfdb0866b1adafb05fa33c0374756c10"},
+    {file = "pylimbo-0.0.9-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:0ceab24ad760cd837ff82bc2f93ae71598e4740d457c9c649da95b2a72452027"},
+    {file = "pylimbo-0.0.9-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:8eb929d5081d54a6ca83486911281f22bd9ffd907eaa9d6c95534b9aee2ba9fc"},
+    {file = "pylimbo-0.0.9-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7256d8be882ae09d990d111d9bae3685d847cf88cc81dcbfdbd6530fc4006fb8"},
+    {file = "pylimbo-0.0.9-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:04b87794bde05058b71b229ec8987c6b3aba48202ea775cc550e89a2716c281d"},
+    {file = "pylimbo-0.0.9-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:15c540511169d8e2d4ce6d9cda20e26966ecbe9721f69b0eecb05eb355e638cd"},
+    {file = "pylimbo-0.0.9-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:dd7894b3136048c2302bef5ca511bd198a5bae1821d66cd50293d657243a7e81"},
+    {file = "pylimbo-0.0.9-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8057bc50af48d1abeda6cb26ec007ae869a78fdaee7c9634a789c2b03721e2d1"},
+    {file = "pylimbo-0.0.9-pp310-pypy310_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d6fc17bde23a69749b99d9494cc73f7f9012d3ca62615683da0533efb69d8adc"},
+    {file = "pylimbo-0.0.9.tar.gz", hash = "sha256:156f1fbdf78fbeba11070b20f7e55ea516053acd1ee62096d2675d069ce47417"},
+]
+
+[package.dependencies]
+typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
+
+[package.extras]
+dev = ["coverage (==7.6.1)", "mypy (==1.11.0)", "pytest (==8.3.1)", "pytest-cov (==5.0.0)", "ruff (==0.5.4)"]
+
+[[package]]
 name = "pylint"
 version = "2.17.7"
 description = "python code static checker"
@@ -494,4 +524,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "fcb0192c24bfff92d2422b2e9ddd2940b65f16a8f28b960631576108fca938c2"
+content-hash = "a00c22e75852d0741e04eaed965837bffb518963b7443fa430e718394fb7e845"
