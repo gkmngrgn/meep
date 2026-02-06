@@ -7,14 +7,14 @@ Meep is a Python CLI tool for reviewing and organizing tweets from exported Twit
 ## Development Setup
 
 ```bash
-poetry install          # Install all dependencies
+uv sync                 # Install all dependencies
 ```
 
 ## Common Commands
 
 ```bash
-poetry run meep load-data <twitter-archive.zip>   # Import Twitter archive
-poetry run meep analyze --keyword="..." --year=2015 --show-tweets  # Query tweets
+uv run meep load-data <twitter-archive.zip>   # Import Twitter archive
+uv run meep analyze --keyword="..." --year=2015 --show-tweets  # Query tweets
 ```
 
 ## Code Quality
@@ -28,21 +28,20 @@ pre-commit run --all-files
 Individual tools:
 
 ```bash
-# Formatting
-black .
-isort --profile black .
+# Formatting and linting
+ruff check --fix .
+ruff format .
 
 # Type checking
 mypy --strict --ignore-missing-imports meep/
 
 # Linting
-poetry run pylint --disable=missing-docstring meep/
+uv run pylint --disable=missing-docstring meep/
 ```
 
 ## Code Style
 
-- **Black** formatting (default 88 char line length)
-- **isort** with Black profile for imports
+- **Ruff** for formatting and linting (replaces black, isort)
 - **mypy strict mode** — all code must have type annotations
 - **pylint** — docstrings are not required (`missing-docstring` disabled)
 - No trailing whitespace; files must end with a newline
