@@ -67,7 +67,8 @@ class MeepDatabase:
                 account
                 for account in accounts
                 if not cursor.execute(
-                    "SELECT EXISTS(SELECT 1 FROM account WHERE username = ?)", (account.username,)
+                    "SELECT EXISTS(SELECT 1 FROM account WHERE username = ?)",
+                    (account.username,),
                 ).fetchone()[0]
             ]
             cursor.executemany(
