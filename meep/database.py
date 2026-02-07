@@ -96,6 +96,10 @@ class MeepDatabase:
                 [tweet.to_row() for tweet in tweets_filtered],
             )
 
+    def delete_tweet(self, tweet_id: int) -> None:
+        with db_cursor() as cursor:
+            cursor.execute("DELETE FROM post WHERE id = ?", (tweet_id,))
+
     def filter_tweets(  # pylint: disable=too-many-arguments
         self,
         keyword: str,
@@ -112,8 +116,7 @@ class MeepDatabase:
             "p.retweet_count <= ?",
             "strftime('%Y', p.created_at) = ?",
             "p.full_text LIKE ?",
-            "(SELECT COUNT(*) FROM post r"
-            " WHERE r.in_reply_to_status_id = p.id) <= ?",
+            "(SELECT COUNT(*) FROM post r WHERE r.in_reply_to_status_id = p.id) <= ?",
         ]
         params: list[object] = [
             max_fav_count,

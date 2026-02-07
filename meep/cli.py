@@ -7,6 +7,7 @@ from typing import Optional
 import click
 
 from meep.archive import parse_account_data, parse_tweet_data
+from meep.browser import delete_tweets
 from meep.config import DB_PATH
 from meep.database import MeepDatabase
 from meep.printer import format_tweet
@@ -119,3 +120,75 @@ def analyze(  # pylint: disable=too-many-arguments
         f"max rt: {review.max_retweet} - "
         f"max self-reply: {review.max_self_reply}"
     )
+
+
+@run.command("delete-tweets")
+@click.option("--keyword", default="")
+@click.option("--max-favorite", default=0)
+@click.option("--max-retweet", default=0)
+@click.option("--year", default=datetime.date.today().year)
+@click.option("--order-by", default="-created_at")
+@click.option(
+    "--tweet-type",
+    type=click.Choice(["all", "reply", "original", "retweet"]),
+    default="all",
+    help="Filter by tweet type: all, reply, original, or retweet.",
+)
+@click.option("--max-self-reply", default=0)
+@click.option(
+    "--confirm",
+    is_flag=True,
+    default=False,
+    help="Actually delete tweets. Without this flag, only a dry run is performed.",
+)
+@click.option(
+    "--headless",
+    is_flag=True,
+    default=False,
+    help="Run browser in headless mode (no visible window).",
+)
+def delete_tweets_cmd(
+    keyword: str,
+    max_favorite: int,
+    max_retweet: int,
+    year: int,
+    order_by: str,
+    tweet_type: str,
+    max_self_reply: int,
+    confirm: bool,
+    headless: bool,
+) -> None:
+    meep_db = MeepDatabase()
+    tweets = list(
+        meep_db.filter_tweets(
+            keyword=keyword,
+            max_fav_count=max_favorite,
+            max_rt_count=max_retweet,
+            year=year,
+            order_by=order_by,
+            is_reply=TWEET_TYPE_MAP[tweet_type][0],
+            is_retweet=TWEET_TYPE_MAP[tweet_type][1],
+            max_self_reply_count=max_self_reply,
+        )
+    )
+
+    if not tweets:
+        click.echo("No tweets matched the given filters.")
+        return
+
+    click.echo(f"Found {len(tweets)} tweet(s) matching filters.")
+
+    if not confirm:
+        click.echo("\nDRY RUN — tweets that would be deleted:")
+        for tweet in tweets:
+            click.echo(f"  {tweet.link}")
+        click.echo(f"\nRe-run with --confirm to delete these {len(tweets)} tweet(s).")
+        return
+
+    tweet_urls = [tweet.link for tweet in tweets]
+    deleted_count = delete_tweets(tweet_urls, headless=headless)
+
+    for tweet in tweets[:deleted_count]:
+        meep_db.delete_tweet(tweet.id)
+
+    click.echo(f"\nDone. Deleted {deleted_count}/{len(tweets)} tweet(s).")
