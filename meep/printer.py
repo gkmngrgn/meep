@@ -8,7 +8,7 @@ def format_tweet(tweet: Tweet) -> str:
     card = f"""
     {tweet.created_at}
     {message}
-    RT {tweet.retweet_count} - <3 {tweet.favorite_count}
+    Retweet {tweet.retweet_count} - Like {tweet.favorite_count}
     {tweet.link}
     """
     return textwrap.dedent(card)

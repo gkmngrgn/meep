@@ -34,6 +34,7 @@ def parse_tweet_data(content: bytes, account: Account) -> List[Tweet]:
             retweeted=data["tweet"]["retweeted"],
             lang=data["tweet"]["lang"],
             created_at=parse_date(data["tweet"]["created_at"]),
+            in_reply_to_status_id=data["tweet"].get("in_reply_to_status_id"),
         )
         for data in __jsonize(content)
     ]

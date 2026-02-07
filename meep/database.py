@@ -45,6 +45,7 @@ class MeepDatabase:
                 retweeted BOOLEAN,
                 lang TEXT,
                 created_at TIMESTAMP,
+                in_reply_to_status_id TEXT,
                 FOREIGN KEY (account_id) REFERENCES account (username)
             );
             """,
@@ -88,8 +89,9 @@ class MeepDatabase:
             cursor.executemany(
                 """
                 INSERT INTO post (
-                    id, account_id, full_text, favorite_count, retweet_count, retweeted, lang, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    id, account_id, full_text, favorite_count, retweet_count,
+                    retweeted, lang, created_at, in_reply_to_status_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [tweet.to_row() for tweet in tweets_filtered],
             )
@@ -101,18 +103,36 @@ class MeepDatabase:
         max_rt_count: int,
         year: int,
         order_by: str,
+        is_reply: Optional[bool] = None,
     ) -> Iterable[Tweet]:
+        conditions = [
+            "favorite_count <= ?",
+            "retweet_count <= ?",
+            "strftime('%Y', created_at) = ?",
+            "full_text LIKE ?",
+        ]
+        params: list[object] = [
+            max_fav_count,
+            max_rt_count,
+            str(year),
+            f"%{keyword}%",
+        ]
+
+        if is_reply is True:
+            conditions.append("in_reply_to_status_id IS NOT NULL")
+        elif is_reply is False:
+            conditions.append("in_reply_to_status_id IS NULL")
+
+        where_clause = " AND ".join(conditions)
+
         with db_cursor() as cursor:
             tweets = cursor.execute(
                 f"""
                 SELECT * FROM post
-                WHERE favorite_count <= ?
-                    AND retweet_count <= ?
-                    AND strftime('%Y', created_at) = ?
-                    AND full_text LIKE ?
+                WHERE {where_clause}
                 ORDER BY {order_by};
                 """,
-                (max_fav_count, max_rt_count, str(year), f"%{keyword}%"),
+                params,
             )
 
             for tweet in tweets:

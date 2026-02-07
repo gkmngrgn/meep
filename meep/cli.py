@@ -2,6 +2,7 @@ import datetime
 import sys
 import zipfile
 from collections import namedtuple
+from typing import Optional
 
 import click
 
@@ -54,6 +55,13 @@ def load_data(filename: str) -> None:
     click.echo(click.format_filename(filename))
 
 
+TWEET_TYPE_MAP: dict[str, Optional[bool]] = {
+    "all": None,
+    "reply": True,
+    "original": False,
+}
+
+
 @run.command()
 @click.option("--show-tweets/--hide-tweets", default=False)
 @click.option("--keyword", default="")
@@ -61,6 +69,12 @@ def load_data(filename: str) -> None:
 @click.option("--max-retweet", default=0)
 @click.option("--year", default=datetime.date.today().year)
 @click.option("--order-by", default="-created_at")
+@click.option(
+    "--tweet-type",
+    type=click.Choice(["all", "reply", "original"]),
+    default="all",
+    help="Filter by tweet type: all, reply, or original.",
+)
 def analyze(  # pylint: disable=too-many-arguments
     show_tweets: bool,
     keyword: str,
@@ -68,6 +82,7 @@ def analyze(  # pylint: disable=too-many-arguments
     max_retweet: int,
     year: int,
     order_by: str,
+    tweet_type: str,
 ) -> None:
     tweets = MeepDatabase().filter_tweets(
         keyword=keyword,
@@ -75,6 +90,7 @@ def analyze(  # pylint: disable=too-many-arguments
         max_rt_count=max_retweet,
         year=year,
         order_by=order_by,
+        is_reply=TWEET_TYPE_MAP[tweet_type],
     )
 
     review = AccountReview(0, 0, 0)
