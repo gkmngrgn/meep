@@ -13,6 +13,7 @@ dependencies = [
     "appdirs>=1.4.4",
     "python-dateutil>=2.8.2",
     "pydantic>=2.10.3",
+    "playwright>=1.40.0",
 ]
 
 
