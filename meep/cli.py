@@ -2,6 +2,7 @@ import datetime
 import sys
 import zipfile
 from collections import namedtuple
+from typing import Optional
 
 import click
 
@@ -12,7 +13,7 @@ from meep.printer import format_tweet
 
 AccountReview = namedtuple(
     "AccountReview",
-    ("tweet_count", "max_favorite", "max_retweet"),
+    ("tweet_count", "max_favorite", "max_retweet", "max_self_reply"),
 )
 
 
@@ -54,6 +55,14 @@ def load_data(filename: str) -> None:
     click.echo(click.format_filename(filename))
 
 
+TWEET_TYPE_MAP: dict[str, tuple[Optional[bool], Optional[bool]]] = {
+    "all": (None, None),
+    "reply": (True, None),
+    "original": (False, False),
+    "retweet": (None, True),
+}
+
+
 @run.command()
 @click.option("--show-tweets/--hide-tweets", default=False)
 @click.option("--keyword", default="")
@@ -61,6 +70,13 @@ def load_data(filename: str) -> None:
 @click.option("--max-retweet", default=0)
 @click.option("--year", default=datetime.date.today().year)
 @click.option("--order-by", default="-created_at")
+@click.option(
+    "--tweet-type",
+    type=click.Choice(["all", "reply", "original", "retweet"]),
+    default="all",
+    help="Filter by tweet type: all, reply, original, or retweet.",
+)
+@click.option("--max-self-reply", default=0)
 def analyze(  # pylint: disable=too-many-arguments
     show_tweets: bool,
     keyword: str,
@@ -68,6 +84,8 @@ def analyze(  # pylint: disable=too-many-arguments
     max_retweet: int,
     year: int,
     order_by: str,
+    tweet_type: str,
+    max_self_reply: int,
 ) -> None:
     tweets = MeepDatabase().filter_tweets(
         keyword=keyword,
@@ -75,15 +93,19 @@ def analyze(  # pylint: disable=too-many-arguments
         max_rt_count=max_retweet,
         year=year,
         order_by=order_by,
+        is_reply=TWEET_TYPE_MAP[tweet_type][0],
+        is_retweet=TWEET_TYPE_MAP[tweet_type][1],
+        max_self_reply_count=max_self_reply,
     )
 
-    review = AccountReview(0, 0, 0)
+    review = AccountReview(0, 0, 0, 0)
 
     for tweet in tweets:
         review = AccountReview(
             tweet_count=review.tweet_count + 1,
             max_favorite=max(review.max_favorite, tweet.favorite_count),
             max_retweet=max(review.max_retweet, tweet.retweet_count),
+            max_self_reply=max(review.max_self_reply, tweet.self_reply_count),
         )
         if show_tweets is True:
             click.echo(format_tweet(tweet))
@@ -94,5 +116,6 @@ def analyze(  # pylint: disable=too-many-arguments
     click.echo(
         f"tweets: {review.tweet_count} - "
         f"max fav: {review.max_favorite} - "
-        f"max rt: {review.max_retweet}"
+        f"max rt: {review.max_retweet} - "
+        f"max self-reply: {review.max_self_reply}"
     )

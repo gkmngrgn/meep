@@ -1,7 +1,9 @@
 from __future__ import annotations
-from pydantic import BaseModel
 
 import datetime
+from typing import Optional
+
+from pydantic import BaseModel
 
 
 class Account(BaseModel):
@@ -25,9 +27,11 @@ class Tweet(BaseModel):
     retweeted: bool
     lang: str
     created_at: datetime.datetime
+    in_reply_to_status_id: Optional[int] = None
+    self_reply_count: int = 0
 
     @classmethod
-    def from_row(cls, row) -> Tweet:
+    def from_row(cls, row: tuple[object, ...]) -> Tweet:
         return cls(
             id=row[0],
             account_id=row[1],
@@ -37,9 +41,13 @@ class Tweet(BaseModel):
             retweeted=row[5],
             lang=row[6],
             created_at=row[7],
+            in_reply_to_status_id=row[8] if len(row) > 8 else None,
+            self_reply_count=row[9] if len(row) > 9 else 0,
         )
 
-    def to_row(self) -> tuple[int, int, str, int, int, bool, str, str]:
+    def to_row(
+        self,
+    ) -> tuple[int, str, str, int, int, bool, str, datetime.datetime, Optional[int]]:
         return (
             self.id,
             self.account_id,
@@ -49,6 +57,7 @@ class Tweet(BaseModel):
             self.retweeted,
             self.lang,
             self.created_at,
+            self.in_reply_to_status_id,
         )
 
     @property

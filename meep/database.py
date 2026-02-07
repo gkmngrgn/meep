@@ -45,6 +45,7 @@ class MeepDatabase:
                 retweeted BOOLEAN,
                 lang TEXT,
                 created_at TIMESTAMP,
+                in_reply_to_status_id TEXT,
                 FOREIGN KEY (account_id) REFERENCES account (username)
             );
             """,
@@ -67,7 +68,8 @@ class MeepDatabase:
                 account
                 for account in accounts
                 if not cursor.execute(
-                    "SELECT EXISTS(SELECT 1 FROM account WHERE username = ?)", (account.username,)
+                    "SELECT EXISTS(SELECT 1 FROM account WHERE username = ?)",
+                    (account.username,),
                 ).fetchone()[0]
             ]
             cursor.executemany(
@@ -87,8 +89,9 @@ class MeepDatabase:
             cursor.executemany(
                 """
                 INSERT INTO post (
-                    id, account_id, full_text, favorite_count, retweet_count, retweeted, lang, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    id, account_id, full_text, favorite_count, retweet_count,
+                    retweeted, lang, created_at, in_reply_to_status_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [tweet.to_row() for tweet in tweets_filtered],
             )
@@ -100,18 +103,50 @@ class MeepDatabase:
         max_rt_count: int,
         year: int,
         order_by: str,
+        is_reply: Optional[bool] = None,
+        is_retweet: Optional[bool] = None,
+        max_self_reply_count: int = 0,
     ) -> Iterable[Tweet]:
+        conditions = [
+            "p.favorite_count <= ?",
+            "p.retweet_count <= ?",
+            "strftime('%Y', p.created_at) = ?",
+            "p.full_text LIKE ?",
+            "(SELECT COUNT(*) FROM post r"
+            " WHERE r.in_reply_to_status_id = p.id) <= ?",
+        ]
+        params: list[object] = [
+            max_fav_count,
+            max_rt_count,
+            str(year),
+            f"%{keyword}%",
+            max_self_reply_count,
+        ]
+
+        if is_reply is True:
+            conditions.append("p.in_reply_to_status_id IS NOT NULL")
+        elif is_reply is False:
+            conditions.append("p.in_reply_to_status_id IS NULL")
+
+        if is_retweet is True:
+            conditions.append("p.full_text LIKE 'RT @%'")
+        elif is_retweet is False:
+            conditions.append("p.full_text NOT LIKE 'RT @%'")
+
+        where_clause = " AND ".join(conditions)
+
         with db_cursor() as cursor:
             tweets = cursor.execute(
                 f"""
-                SELECT * FROM post
-                WHERE favorite_count <= ?
-                    AND retweet_count <= ?
-                    AND strftime('%Y', created_at) = ?
-                    AND full_text LIKE ?
+                SELECT p.*, (
+                    SELECT COUNT(*) FROM post r
+                    WHERE r.in_reply_to_status_id = p.id
+                ) AS self_reply_count
+                FROM post p
+                WHERE {where_clause}
                 ORDER BY {order_by};
                 """,
-                (max_fav_count, max_rt_count, str(year), f"%{keyword}%"),
+                params,
             )
 
             for tweet in tweets:
