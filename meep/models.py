@@ -28,6 +28,7 @@ class Tweet(BaseModel):
     lang: str
     created_at: datetime.datetime
     in_reply_to_status_id: Optional[int] = None
+    self_reply_count: int = 0
 
     @classmethod
     def from_row(cls, row: tuple[object, ...]) -> Tweet:
@@ -41,6 +42,7 @@ class Tweet(BaseModel):
             lang=row[6],
             created_at=row[7],
             in_reply_to_status_id=row[8] if len(row) > 8 else None,
+            self_reply_count=row[9] if len(row) > 9 else 0,
         )
 
     def to_row(
