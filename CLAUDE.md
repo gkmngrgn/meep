@@ -29,21 +29,19 @@ Individual tools:
 
 ```bash
 # Formatting and linting
-ruff check --fix .
-ruff format .
+uvx ruff check --fix .
+uvx ruff format .
 
 # Type checking
-mypy --strict --ignore-missing-imports meep/
-
-# Linting
-uv run pylint --disable=missing-docstring meep/
+uvx mypy --strict --ignore-missing-imports meep/
 ```
 
 ## Code Style
 
+- **Always use `uv run`** to execute Python scripts and project commands (e.g., `uv run meep`)
+- **Always use `uvx`** to run dev tools like ruff, mypy, etc.
 - **Ruff** for formatting and linting (replaces black, isort)
 - **mypy strict mode** — all code must have type annotations
-- **pylint** — docstrings are not required (`missing-docstring` disabled)
 - No trailing whitespace; files must end with a newline
 
 ## Architecture

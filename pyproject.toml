@@ -15,10 +15,6 @@ dependencies = [
     "pydantic>=2.10.3",
 ]
 
-[dependency-groups]
-dev = [
-    "pylint>=2.15.5",
-]
 
 [project.scripts]
 meep = "meep.cli:run"
